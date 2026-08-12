@@ -1,0 +1,40 @@
+{
+  "name": "@aiyomi/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@aiyomi/analytics": "workspace:*",
+    "@aiyomi/config": "workspace:*",
+    "@aiyomi/database": "workspace:*",
+    "@aiyomi/schemas": "workspace:*",
+    "@react-email/components": "1.0.12",
+    "@supabase/supabase-js": "2.112.2",
+    "lucide-react": "1.31.0",
+    "next": "16.3.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "resend": "6.18.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.3",
+    "@types/node": "26.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "jsdom": "30.0.1",
+    "postcss": "8.5.26",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Builds and caches
+.next/
+.turbo/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Expo
+.expo/
+web-build/
+
+# Hosting and tooling
+.vercel/
+.DS_Store
+*.log
+
+# Supabase local state. Hosted projects are the supported workflow.
+supabase/.branches/
+supabase/.temp/

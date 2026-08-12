@@ -1,0 +1,21 @@
+# Aiyomi uses the CLI only with a deliberately linked hosted non-production
+# project. Do not add a hosted project ref here and do not run `supabase start`.
+project_id = "aiyomi-hosted-development"
+
+[api]
+enabled = false
+
+[auth]
+enabled = false
+
+[storage]
+enabled = false
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[analytics]
+enabled = false
