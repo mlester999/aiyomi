@@ -58,7 +58,8 @@ export default async function ReferralsPage({ searchParams }: ReferralsPageProps
           <div><h2 id="referrers-title">Top referral codes</h2><p>Ranked by accepted referred signups.</p></div>
         </div>
         {data.top_referrers.length ? (
-          <div className="table-scroll">
+          <>
+          <div className="table-scroll desktop-data-table">
             <table>
               <thead><tr><th scope="col">Referrer</th><th scope="col">Code</th><th scope="col">Referrals</th><th scope="col">Converted</th><th scope="col">Joined</th><th scope="col">Status</th></tr></thead>
               <tbody>
@@ -77,6 +78,29 @@ export default async function ReferralsPage({ searchParams }: ReferralsPageProps
               </tbody>
             </table>
           </div>
+          <div className="mobile-record-list">
+            {data.top_referrers.map((referrer) => (
+              <article className="mobile-record-card" key={referrer.id}>
+                <div className="mobile-record-card-heading">
+                  <div>
+                    <strong>
+                      {hasPermission(member, "waitlist.read") ? (
+                        <Link className="text-link" href={`/waitlist/${referrer.id}`}>{referrer.label}</Link>
+                      ) : referrer.label}
+                    </strong>
+                    <span><code>{referrer.referral_code}</code></span>
+                  </div>
+                  <StatusBadge value={referrer.status} />
+                </div>
+                <div className="mobile-record-meta">
+                  <span>{referrer.referrals} referrals</span>
+                  <span>{referrer.converted_referrals} converted</span>
+                  <span>{formatDate(referrer.created_at)}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+          </>
         ) : (
           <EmptyState description="Referral activity will appear when a valid referral code brings in a signup." title="No referrals yet" />
         )}

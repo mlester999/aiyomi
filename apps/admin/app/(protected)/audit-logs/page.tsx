@@ -63,7 +63,8 @@ export default async function AuditLogsPage({ searchParams }: AuditPageProps) {
       <section className="table-panel" aria-labelledby="events-title">
         <div className="table-panel-heading"><div><h2 id="events-title">Events</h2><p>{data.total} matching events</p></div></div>
         {data.items.length ? (
-          <div className="table-scroll">
+          <>
+          <div className="table-scroll desktop-data-table">
             <table>
               <thead><tr><th scope="col">Time</th><th scope="col">Actor</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Details</th><th scope="col">Request ID</th></tr></thead>
               <tbody>
@@ -80,6 +81,32 @@ export default async function AuditLogsPage({ searchParams }: AuditPageProps) {
               </tbody>
             </table>
           </div>
+          <div className="mobile-record-list">
+            {data.items.map((event) => (
+              <article className="mobile-record-card" key={event.id}>
+                <div className="mobile-record-card-heading">
+                  <div>
+                    <strong>{humanizeKey(event.action)}</strong>
+                    <span>{event.actor_display_name ?? event.actor_email ?? "Former admin"}</span>
+                  </div>
+                  {event.actor_role && <StatusBadge value={event.actor_role} />}
+                </div>
+                <div className="mobile-record-meta">
+                  <span>{humanizeKey(event.target_type)}</span>
+                  <time dateTime={event.created_at}>{formatDateTime(event.created_at)}</time>
+                </div>
+                <details className="mobile-record-details">
+                  <summary>View event details</summary>
+                  <dl className="detail-list">
+                    <div><dt>Target ID</dt><dd>{event.target_id ?? "Not recorded"}</dd></div>
+                    <div><dt>Request ID</dt><dd>{event.request_id ?? "Not recorded"}</dd></div>
+                    <div><dt>Metadata</dt><dd><code className="metadata-code">{JSON.stringify(event.metadata)}</code></dd></div>
+                  </dl>
+                </details>
+              </article>
+            ))}
+          </div>
+          </>
         ) : (
           <EmptyState description={hasFilters ? "Adjust or reset the current filters." : "Privileged changes will be recorded here."} title={hasFilters ? "No matching events" : "No audit events yet"} />
         )}

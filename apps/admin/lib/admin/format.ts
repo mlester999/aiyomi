@@ -28,10 +28,16 @@ export const formatPercentage = (value: number) =>
   new Intl.NumberFormat("en", { maximumFractionDigits: 1 }).format(value) + "%";
 
 export const humanizeKey = (value: string) =>
-  value
-    .replaceAll("_", " ")
-    .replaceAll(".", " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
+  value === "ios"
+    ? "iOS"
+    : value === "android"
+      ? "Android"
+      : value === "both"
+        ? "Both"
+        : value
+            .replaceAll("_", " ")
+            .replaceAll(".", " ")
+            .replace(/\b\w/g, (character) => character.toUpperCase());
 
 export const statusLabel = (value: string) => {
   if (value === "pending") return "Waiting";

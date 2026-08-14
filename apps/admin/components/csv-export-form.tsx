@@ -58,13 +58,18 @@ export function CsvExportForm({
         value ? <input key={key} name={key} type="hidden" value={value} /> : null,
       )}
       <button
+        aria-busy={pending}
         aria-describedby={error ? "csv-export-error" : undefined}
         className="button button-secondary"
         disabled={pending}
         type="submit"
       >
+        {pending && <span aria-hidden="true" className="button-spinner" />}
         {pending ? "Preparing export…" : "Export filtered CSV"}
       </button>
+      <span aria-live="polite" className="sr-only">
+        {pending ? "Preparing export..." : ""}
+      </span>
       {error && (
         <span className="csv-export-error" id="csv-export-error" role="alert">
           {error}

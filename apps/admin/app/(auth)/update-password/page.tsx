@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { updatePasswordAction } from "@/lib/auth/actions";
+import { PasswordUpdateForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = { title: "Choose a new password" };
 
@@ -26,31 +26,7 @@ export default async function UpdatePasswordPage({
           {error}
         </p>
       )}
-      <form action={updatePasswordAction} className="form-stack">
-        <label>
-          <span>New password</span>
-          <input
-            autoComplete="new-password"
-            minLength={12}
-            name="password"
-            required
-            type="password"
-          />
-        </label>
-        <label>
-          <span>Confirm new password</span>
-          <input
-            autoComplete="new-password"
-            minLength={12}
-            name="passwordConfirmation"
-            required
-            type="password"
-          />
-        </label>
-        <button className="button button-primary" type="submit">
-          Save password
-        </button>
-      </form>
+      <PasswordUpdateForm />
     </>
   );
 }

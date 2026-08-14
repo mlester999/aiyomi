@@ -19,13 +19,20 @@ const safeNextPath = (value: FormDataEntryValue | null) => {
 
 const encodeMessage = (message: string) => encodeURIComponent(message);
 
-export const loginAction = async (formData: FormData) => {
+export interface LoginActionState {
+  error: string | null;
+}
+
+export const loginAction = async (
+  _previousState: LoginActionState,
+  formData: FormData,
+): Promise<LoginActionState> => {
   const email = formData.get("email");
   const password = formData.get("password");
   const next = safeNextPath(formData.get("next"));
 
   if (typeof email !== "string" || typeof password !== "string") {
-    redirect(`/login?error=${encodeMessage("Enter your email and password.")}`);
+    return { error: "Enter your email and password." };
   }
 
   const supabase = await createAdminSupabaseActionClient();
@@ -35,9 +42,7 @@ export const loginAction = async (formData: FormData) => {
   });
 
   if (error) {
-    redirect(
-      `/login?error=${encodeMessage("We could not sign you in. Check your details and try again.")}`,
-    );
+    return { error: "We could not sign you in. Check your details and try again." };
   }
 
   redirect(next);

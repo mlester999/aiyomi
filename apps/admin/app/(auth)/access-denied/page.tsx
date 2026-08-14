@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { logoutAction } from "@/lib/auth/actions";
+import { LogoutForm } from "@/components/logout-form";
 
 export const metadata: Metadata = { title: "Access unavailable" };
 
@@ -36,11 +36,7 @@ export default async function AccessDeniedPage({
           Open my workspace
         </Link>
       )}
-      <form action={logoutAction}>
-        <button className="button button-secondary button-full" type="submit">
-          Sign out
-        </button>
-      </form>
+      <LogoutForm />
       <Link className="text-link auth-link" href="/login">
         Return to sign in
       </Link>

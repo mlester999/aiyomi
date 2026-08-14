@@ -16,7 +16,7 @@ export function BrandLockup({ compact = false }: { compact?: boolean }) {
       />
       <span>
         <strong>Aiyomi</strong>
-        {!compact && <small>Admin workspace</small>}
+        <small>{compact ? "Admin" : "Admin workspace"}</small>
       </span>
     </Link>
   );

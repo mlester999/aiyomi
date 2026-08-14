@@ -17,6 +17,7 @@ export function SubmitButton({
 
   return (
     <button
+      aria-busy={pending}
       className={className}
       disabled={pending}
       onClick={(event) => {
@@ -25,7 +26,8 @@ export function SubmitButton({
         }
       }}
       type="submit"
-    >
+      >
+      {pending && <span aria-hidden="true" className="button-spinner" />}
       {pending ? pendingLabel : children}
     </button>
   );

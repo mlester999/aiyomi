@@ -63,8 +63,8 @@ export function DistributionList({
   emptyLabel: string;
   showConverted?: boolean;
 }) {
-  if (!items.length) {
-    return <EmptyState compact description={emptyLabel} title="No data yet" />;
+  if (!items.length || items.every((item) => item.count === 0)) {
+    return <EmptyState compact description={emptyLabel} title="No distribution data yet" />;
   }
 
   return (
@@ -102,8 +102,14 @@ export function TrendChart({
 }: {
   items: ReadonlyArray<{ date: string; count: number }>;
 }) {
-  if (!items.length) {
-    return <EmptyState compact description="Signups will appear after the first lead joins." title="No trend data yet" />;
+  if (!items.length || items.every((item) => item.count === 0)) {
+    return (
+      <EmptyState
+        compact
+        description="Waitlist activity will appear here after the first signup."
+        title="No signup activity yet"
+      />
+    );
   }
 
   const maximum = Math.max(1, ...items.map((item) => item.count));

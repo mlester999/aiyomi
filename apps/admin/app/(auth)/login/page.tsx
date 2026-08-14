@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { loginAction } from "@/lib/auth/actions";
+import { LoginForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = { title: "Sign in" };
 
@@ -43,32 +43,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </p>
       )}
 
-      <form action={loginAction} className="form-stack">
-        <input name="next" type="hidden" value={next} />
-        <label>
-          <span>Email</span>
-          <input
-            autoComplete="email"
-            inputMode="email"
-            name="email"
-            required
-            type="email"
-          />
-        </label>
-        <label>
-          <span>Password</span>
-          <input
-            autoComplete="current-password"
-            minLength={8}
-            name="password"
-            required
-            type="password"
-          />
-        </label>
-        <button className="button button-primary" type="submit">
-          Sign in
-        </button>
-      </form>
+      <LoginForm next={next} />
 
       <Link className="text-link auth-link" href="/forgot-password">
         Forgot your password?

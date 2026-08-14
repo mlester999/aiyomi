@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { requestPasswordResetAction } from "@/lib/auth/actions";
+import { PasswordResetForm } from "@/components/auth-forms";
 
 export const metadata: Metadata = { title: "Reset password" };
 
@@ -27,15 +27,7 @@ export default async function ForgotPasswordPage({
           If that account can be recovered, a reset email is on its way.
         </p>
       ) : (
-        <form action={requestPasswordResetAction} className="form-stack">
-          <label>
-            <span>Email</span>
-            <input autoComplete="email" name="email" required type="email" />
-          </label>
-          <button className="button button-primary" type="submit">
-            Send reset instructions
-          </button>
-        </form>
+        <PasswordResetForm />
       )}
 
       <Link className="text-link auth-link" href="/login">

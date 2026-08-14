@@ -49,7 +49,8 @@ export default async function AdminsPage({ searchParams }: AdminsPageProps) {
       <section className="table-panel" aria-labelledby="members-title">
         <div className="table-panel-heading"><div><h2 id="members-title">Memberships</h2><p>{members.length} visible records</p></div></div>
         {members.length ? (
-          <div className="table-scroll">
+          <>
+          <div className="table-scroll desktop-data-table">
             <table>
               <thead><tr><th scope="col">Member</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Created</th><th scope="col">Updated</th>{canManage && <th scope="col">Management</th>}</tr></thead>
               <tbody>
@@ -79,6 +80,36 @@ export default async function AdminsPage({ searchParams }: AdminsPageProps) {
               </tbody>
             </table>
           </div>
+          <div className="mobile-record-list">
+            {members.map((admin) => (
+              <article className="mobile-record-card" key={admin.id}>
+                <div className="mobile-record-card-heading">
+                  <div>
+                    <strong>{admin.display_name ?? admin.email}</strong>
+                    <span>{admin.email}</span>
+                  </div>
+                  <StatusBadge value={admin.status} />
+                </div>
+                <div className="mobile-record-meta">
+                  <span>{roleLabels[admin.role]}</span>
+                  <span>Updated {formatDateTime(admin.updated_at)}</span>
+                </div>
+                {canManage && (
+                  <details className="row-disclosure mobile-record-details">
+                    <summary className="text-link">Edit membership</summary>
+                    <form action={updateAdminMemberAction} className="row-form">
+                      <input name="memberId" type="hidden" value={admin.id} />
+                      <label><span>Display name</span><input defaultValue={admin.display_name ?? ""} maxLength={100} name="displayName" /></label>
+                      <label><span>Role</span><select defaultValue={admin.role} name="role">{adminRoles.map((role) => <option key={role} value={role}>{roleLabels[role]}</option>)}</select></label>
+                      <label><span>Status</span><select defaultValue={admin.status} name="status"><option value="active">Active</option><option value="suspended">Suspended</option></select></label>
+                      <SubmitButton className="button button-primary button-small" confirmation="Save this membership change? The action will be audited." pendingLabel="Saving...">Save</SubmitButton>
+                    </form>
+                  </details>
+                )}
+              </article>
+            ))}
+          </div>
+          </>
         ) : <EmptyState description="Bootstrap the first Super Admin through the documented trusted database process." title="No admin memberships" />}
       </section>
 
