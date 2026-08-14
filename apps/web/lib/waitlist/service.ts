@@ -38,6 +38,7 @@ export class WaitlistUnavailableError extends Error {
 
 export interface JoinWaitlistContext {
   rateLimitKey: string;
+  beforeInsert?: () => Promise<boolean>;
   onNonCriticalError?: (error: unknown) => void;
 }
 
@@ -90,6 +91,10 @@ export class WaitlistService {
     }
 
     try {
+      if (context.beforeInsert && !(await context.beforeInsert())) {
+        throw new WaitlistPausedError();
+      }
+
       const referredBy = submission.referralCode
         ? await this.dependencies.repository.findReferrerIdByCode(
             submission.referralCode,
@@ -128,7 +133,8 @@ export class WaitlistService {
     } catch (error) {
       if (
         error instanceof WaitlistValidationError ||
-        error instanceof WaitlistRateLimitError
+        error instanceof WaitlistRateLimitError ||
+        error instanceof WaitlistPausedError
       ) {
         throw error;
       }
@@ -188,5 +194,14 @@ export class WaitlistService {
     } catch (error) {
       onNonCriticalError(error);
     }
+  }
+}
+
+export class WaitlistPausedError extends Error {
+  readonly code = "paused";
+
+  constructor() {
+    super("Waitlist submissions are paused.");
+    this.name = "WaitlistPausedError";
   }
 }

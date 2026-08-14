@@ -27,6 +27,15 @@ The public browser is untrusted. It may submit email, optional first name, prefe
 
 The same-origin server endpoint is the Phase 1A trust boundary. It validates, normalizes, throttles, checks anti-spam signals, performs the hosted Supabase operation, calls the email adapter if configured, and returns a generic result.
 
+### Admin browser and Next.js server
+
+The admin browser remains untrusted even after login. It may hold a session
+cookie and render permission-aware controls, but it cannot grant a role or
+authorize an operation. The admin Next.js server validates the session,
+requires an active membership, checks the exact role permission, constrains
+inputs and outputs, and calls a bounded database operation. Protected data must
+not be rendered before those checks complete.
+
 ### Hosted Supabase
 
 Supabase PostgreSQL is the waitlist source of truth. Database constraints enforce invariants and uniqueness. RLS and grants prevent anonymous reads and unintended writes.
@@ -145,6 +154,36 @@ Before release:
 
 Google conversion matching must use a trusted verified provider email, never a client-asserted address.
 
+### Phase 2 admin authentication and sessions
+
+Admin authentication uses Supabase Auth email, password, and password recovery.
+Public admin signup does not exist. Auth identities are pre-provisioned through
+an owner-controlled process, and access still requires a separate active
+`admin_members` record.
+
+The Next.js admin app uses cookie-backed Supabase SSR sessions. Session clients
+are created inside each request. They are never cached in module scope or
+shared between users. Next.js Proxy may refresh and optimistically redirect a
+session, but it is not the authorization boundary. Protected layouts,
+data-access functions, server actions, route handlers, exports, and database
+functions must each enforce the permission relevant to their operation.
+
+Session controls must:
+
+- preserve all refreshed cookies and private no-store response headers
+- reject invalid or expired sessions before privileged data is rendered
+- use fixed, validated same-origin login and recovery destinations
+- provide logout without a GET mutation
+- keep access and refresh tokens out of application logs and client props
+- avoid manually storing Auth tokens in local storage
+- keep authenticated responses dynamic and non-cacheable
+
+Before Production, the owner must approve the session lifetime, inactivity
+timeout, password policy, leaked-password protection where available, Auth rate
+limits, and whether TOTP MFA is mandatory. MFA must not be claimed until
+enrollment, challenge, recovery, server authorization, and database enforcement
+are implemented and tested.
+
 ## 7. Authorization and RLS
 
 Every user-owned future table requires an explicit ownership rule. Common policy intent is that an authenticated user can access only their own private records, with carefully bounded sharing tables for explicit social use.
@@ -152,13 +191,34 @@ Every user-owned future table requires an explicit ownership rule. Common policy
 Admin access requires:
 
 - authenticated identity
-- explicit server-side role or permission check
+- an explicit active admin membership
+- an exact server-side role or permission check
 - database access consistent with that role
 - audited sensitive actions
 - least-privilege views or queries
 - protected exports
 
-Do not rely on hidden routes, client role flags, or possession of a public Supabase key. Service credentials bypass RLS and therefore belong only in tightly controlled server modules.
+The Phase 2 role matrix is migration-controlled. Super Admin, Admin, Analyst,
+and Support receive only the documented permissions in `ADMIN.md`. Only a
+Super Admin can manage memberships. Normal workflows must prevent self-promotion,
+unauthorized Super Admin assignment, and removal or suspension of the final
+active Super Admin.
+
+Do not rely on hidden routes, client role flags, or possession of a public
+Supabase key. Normal admin data access uses the caller's validated session so
+RLS and RPC authorization remain effective. Service credentials bypass RLS and
+therefore belong only in tightly controlled `server-only` modules for operations
+that cannot use the caller-scoped client.
+
+Security-definer admin functions must derive identity from `auth.uid()`, set an
+empty `search_path`, fully qualify objects, check the exact permission, validate
+bounded input, return minimal data, and revoke default execution from `public`
+and `anon`. Direct writes from arbitrary authenticated users to admin tables or
+waitlist records are prohibited.
+
+Privileged mutations and exports require an append-only audit record. Audit
+metadata is bounded and excludes passwords, session tokens, authorization
+headers, service credentials, full exports, and unnecessary personal data.
 
 ## 8. Privacy classification
 
@@ -259,6 +319,26 @@ The web and admin applications must address:
 
 Use a practical Content Security Policy and security headers suitable for Next.js and required providers. Adding a header without validating the deployed behavior is not completion.
 
+For the admin origin, prefer a restrictive policy with `frame-ancestors 'none'`,
+`object-src 'none'`, a same-origin `base-uri` and `form-action`, a
+minimal `connect-src`, and nonce-bound scripts when the implementation supports
+them. Also set `X-Content-Type-Options: nosniff`, a restrictive referrer policy,
+an appropriate permissions policy, and HSTS only after HTTPS and subdomain
+behavior are verified. Keep CORS closed unless an explicit same-purpose client
+requires it.
+
+All authenticated HTML, auth callbacks, session-refresh responses, private API
+responses, and CSV exports must be private and non-cacheable. A token refresh
+that sets a cookie must propagate the cache-control headers returned by the SSR
+library. Validate deployed headers and caching behavior rather than relying on
+configuration inspection alone.
+
+Raw route handlers that mutate state must validate same-origin `Origin` and
+`Host` expectations in addition to authenticating, authorizing, and validating
+the request. Server Actions and route handlers must never expose a GET-based
+mutation. CSV export must neutralize spreadsheet formula prefixes and enforce a
+permission, filter schema, row cap, no-store response, and audit event.
+
 ## 13. Error handling and logging
 
 Public errors should be useful but generic. Do not return SQL messages, constraint names, stack traces, provider bodies, secret fragments, internal user IDs, or whether an email exists.
@@ -279,6 +359,9 @@ Alerting should focus on actionable patterns such as unusual signup volume, repe
 - Commit and review the pnpm lockfile.
 - Use reproducible installs in CI.
 - Run lint, typecheck, tests, and production builds without Production secrets.
+- Keep the ordinary CI job credential-free. Hosted integration checks belong in
+  a separate owner-authorized job or manual run against proven Development or
+  Staging.
 - Review dependency updates and avoid unnecessary packages.
 - Keep build logs free of environment values.
 - Use protected deployment environments for sensitive credentials.
@@ -302,7 +385,10 @@ Do not promise a response time or legal process until operations can meet it.
 ## 16. Security review gates by phase
 
 - **Waitlist:** endpoint validation, normalization, throttling, duplicate privacy, RLS, secret boundary, email domain and consent handling
-- **Admin:** authentication, role authorization, audit logs, export controls, session protection
+- **Admin:** no public registration, session protection, active membership,
+  server and database role authorization, final-Super-Admin protection,
+  append-only audit logs, export controls, environment isolation, and deployed
+  security headers
 - **Mobile Auth:** redirect and deep-link review, secure token storage, verification, deletion
 - **Daily Life Engine:** user ownership, offline conflict integrity, private defaults
 - **AI and Life Model:** context minimization, memory consent, deletion, provider review, safety evaluations
@@ -317,11 +403,11 @@ Do not promise a response time or legal process until operations can meet it.
 - production rate-limit and bot-protection provider
 - log, alerting, and security monitoring vendors
 - retention schedule by data category and launch region
-- admin role hierarchy
+- Production admin MFA and session-lifetime policy
+- admin invitation and lost-factor recovery procedure
 - encryption needs beyond provider-managed storage and transport
 - competitive review and appeal process
 - vulnerability disclosure process
 - AI provider and integration risk assessments
 
 Deferred does not mean optional. Each decision is required before the dependent feature reaches production.
-

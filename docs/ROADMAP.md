@@ -49,7 +49,7 @@ Complete product features, billing, AI runtime, full admin, and full mobile scre
 
 ## Phase 1: Brand + Landing Page + Waitlist
 
-Phase 1A is the current implementation target together with Phase 0.
+Phase 1A and Phase 1A.1 are accepted foundations for the active Phase 2 work.
 
 ### Outcome
 
@@ -84,6 +84,13 @@ Complete mobile functionality, full AI, final Day Score, full virtual world, min
 
 ## Phase 2: Admin Foundation
 
+### Status
+
+Repository implementation and credential-free validation are complete. Phase 0,
+Phase 1A, and Phase 1A.1 are accepted. Phase 2 remains pending owner-authorized
+hosted Development or Staging migration and smoke validation. Phase 3 must not
+begin without owner approval after that acceptance checkpoint.
+
 ### Outcome
 
 An authenticated, authorized, auditable operational surface for the features that exist, beginning with the waitlist.
@@ -91,20 +98,30 @@ An authenticated, authorized, auditable operational surface for the features tha
 ### Scope
 
 - admin authentication and explicit role authorization
+- no public admin registration and an owner-controlled first Super Admin
+  bootstrap
 - dashboard shell, route protection, error states, and audit foundation
 - waitlist overview for total leads, today, this week, platform, source, campaign, conversion, and referral performance
 - authorized waitlist table for email, optional first name, platform, attribution, date, invited state, and conversion state
-- safe filters and narrowly authorized exports if owner-approved
+- safe filters and narrowly authorized filtered CSV exports
 - invitation status workflow and Resend operational visibility
-- referral-code issuance or inspection only if explicitly included
+- referral analytics and inspection of stored referral relationships without
+  rewards or payouts
 - settings and feature flag foundations needed for current operations
+- documented environment separation, deployment promotion, and owner recovery
+  procedures
 
 ### Exit criteria
 
 - navigation hiding is not used as authorization
+- authenticated non-admin and suspended-member access are denied
 - privileged reads and actions are server-authorized and audited
 - RLS and service credentials are reviewed
 - exports and personal-data access have clear permissions
+- the final active Super Admin cannot be removed through a normal workflow
+- credential-free CI remains independent from hosted Supabase credentials
+- hosted validation identifies a Development or Staging project and never uses
+  Production
 - admin remains operational software, visually distinct from the consumer app
 
 ### Non-goals
@@ -411,5 +428,8 @@ A phase is complete only when:
 
 ## 4. Current boundary
 
-The authorized work is **Phase 0 plus Phase 1A**. Admin and mobile receive foundations only. Phase 2 through Phase 11 are documentation and planning context until the owner explicitly scopes them.
-
+The authorized work is **Phase 2: Admin Foundation**. Phase 0, Phase 1A, and
+Phase 1A.1 are accepted foundations. The public landing visual direction is
+frozen except for genuine bug, accessibility, security, or integration fixes.
+Mobile remains a foundation only. Phase 3 through Phase 11 are documentation
+and planning context until the owner explicitly scopes them.

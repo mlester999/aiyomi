@@ -6,6 +6,7 @@ import type {
   WaitlistRepository,
 } from "./contracts";
 import {
+  WaitlistPausedError,
   WaitlistRateLimitError,
   WaitlistService,
   WaitlistUnavailableError,
@@ -33,6 +34,7 @@ describe("WaitlistService", () => {
   const deliverConfirmation = vi.fn();
   const consume = vi.fn();
   const schedule = vi.fn();
+  const beforeInsert = vi.fn();
   const onNonCriticalError = vi.fn();
   const scheduledTasks: Array<() => Promise<void>> = [];
 
@@ -66,6 +68,7 @@ describe("WaitlistService", () => {
       scheduledTasks.push(task);
     });
     consume.mockReturnValue({ allowed: true, retryAfterSeconds: 0 });
+    beforeInsert.mockResolvedValue(true);
     findReferrerIdByCode.mockResolvedValue("referrer-id");
     insert.mockResolvedValue({
       kind: "created",
@@ -245,6 +248,51 @@ describe("WaitlistService", () => {
     expect(error).toBeInstanceOf(WaitlistRateLimitError);
     expect(error).toMatchObject({ retryAfterSeconds: 90 });
 
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it("does not run the pre-insert gate for throttled or invalid input", async () => {
+    consume.mockReturnValue({ allowed: false, retryAfterSeconds: 90 });
+
+    await expect(
+      createService().join(validSubmission, {
+        beforeInsert,
+        rateLimitKey: "ip-hash",
+      }),
+    ).rejects.toBeInstanceOf(WaitlistRateLimitError);
+    expect(beforeInsert).not.toHaveBeenCalled();
+
+    consume.mockReturnValue({ allowed: true, retryAfterSeconds: 0 });
+    await expect(
+      createService().join(
+        { ...validSubmission, platformInterest: "web" },
+        { beforeInsert, rateLimitKey: "ip-hash" },
+      ),
+    ).rejects.toBeInstanceOf(WaitlistValidationError);
+    expect(beforeInsert).not.toHaveBeenCalled();
+  });
+
+  it("runs the pre-insert gate after validation and before storage", async () => {
+    await createService().join(validSubmission, {
+      beforeInsert,
+      rateLimitKey: "ip-hash",
+    });
+
+    expect(beforeInsert).toHaveBeenCalledOnce();
+    expect(beforeInsert.mock.invocationCallOrder[0]).toBeLessThan(
+      insert.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY,
+    );
+  });
+
+  it("stops before storage when the pre-insert gate is closed", async () => {
+    beforeInsert.mockResolvedValue(false);
+
+    await expect(
+      createService().join(validSubmission, {
+        beforeInsert,
+        rateLimitKey: "ip-hash",
+      }),
+    ).rejects.toBeInstanceOf(WaitlistPausedError);
     expect(insert).not.toHaveBeenCalled();
   });
 

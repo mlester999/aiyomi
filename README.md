@@ -2,12 +2,12 @@
 
 Your AI companion for better days.
 
-This repository contains the Phase 0 product and monorepo foundation plus the Phase 1A public landing page and waitlist.
+This repository contains the accepted monorepo and public landing-page foundation plus the Phase 2 secure admin portal and waitlist operations.
 
 ## Workspace
 
 - `apps/web`: public Next.js landing page and secure waitlist endpoint
-- `apps/admin`: bounded Next.js admin shell foundation
+- `apps/admin`: secure Next.js operations portal for the waitlist, analytics, referrals, audit history, memberships, flags, and approved settings
 - `apps/mobile`: Expo Router and React Native foundation
 - `packages`: shared types, schemas, domain logic, database contracts, configuration, design tokens, analytics, and testing helpers
 - `supabase`: hosted Supabase configuration and forward-only migrations

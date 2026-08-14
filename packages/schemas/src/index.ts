@@ -1,4 +1,10 @@
 import {
+  ADMIN_MEMBER_ROLES,
+  ADMIN_MEMBER_STATUSES,
+  ADMIN_PERMISSIONS,
+  APPLICATION_SETTING_KEYS,
+  DEPLOYMENT_ENVIRONMENTS,
+  FEATURE_FLAG_KEYS,
   WAITLIST_PLATFORM_INTERESTS,
   WAITLIST_SOURCES,
   type WaitlistAttribution,
@@ -122,6 +128,32 @@ export const waitlistSignupSchema = waitlistAttributionSchema.extend({
 
 export type WaitlistSignup = z.output<typeof waitlistSignupSchema>;
 export type WaitlistSignupRequest = z.input<typeof waitlistSignupSchema>;
+
+export const adminMemberRoleSchema = z.enum(ADMIN_MEMBER_ROLES);
+
+export const adminMemberStatusSchema = z.enum(ADMIN_MEMBER_STATUSES);
+
+export const adminPermissionSchema = z.enum(ADMIN_PERMISSIONS);
+
+export const deploymentEnvironmentSchema = z.enum(DEPLOYMENT_ENVIRONMENTS);
+
+export const featureFlagKeySchema = z.enum(FEATURE_FLAG_KEYS);
+
+export const applicationSettingKeySchema = z.enum(APPLICATION_SETTING_KEYS);
+
+export const adminCurrentMemberSchema = z
+  .object({
+    id: z.string().uuid(),
+    userId: z.string().uuid(),
+    email: z.string().email(),
+    displayName: z.string().min(1).max(100).nullable(),
+    role: adminMemberRoleSchema,
+    status: z.literal("active"),
+    permissions: z.array(adminPermissionSchema),
+  })
+  .strict();
+
+export type AdminCurrentMember = z.output<typeof adminCurrentMemberSchema>;
 
 type SearchParamsReader = Pick<URLSearchParams, "get">;
 

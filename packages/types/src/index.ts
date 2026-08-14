@@ -55,3 +55,66 @@ export type WaitlistApiError = {
 };
 
 export type WaitlistApiResponse = WaitlistApiSuccess | WaitlistApiError;
+
+export const ADMIN_MEMBER_ROLES = [
+  "super_admin",
+  "admin",
+  "analyst",
+  "support",
+] as const;
+
+export type AdminMemberRole = (typeof ADMIN_MEMBER_ROLES)[number];
+
+export const ADMIN_MEMBER_STATUSES = ["active", "suspended"] as const;
+
+export type AdminMemberStatus = (typeof ADMIN_MEMBER_STATUSES)[number];
+
+export const ADMIN_PERMISSIONS = [
+  "dashboard.read",
+  "waitlist.read",
+  "waitlist.status.write",
+  "waitlist.export",
+  "analytics.read",
+  "referrals.read",
+  "audit.read",
+  "admins.read",
+  "admins.write",
+  "feature_flags.read",
+  "feature_flags.write",
+  "settings.read",
+  "settings.write",
+] as const;
+
+export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
+
+export const DEPLOYMENT_ENVIRONMENTS = [
+  "development",
+  "staging",
+  "production",
+] as const;
+
+export type DeploymentEnvironment =
+  (typeof DEPLOYMENT_ENVIRONMENTS)[number];
+
+export const FEATURE_FLAG_KEYS = ["waitlist_enabled"] as const;
+
+export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number];
+
+export const APPLICATION_SETTING_KEYS = [
+  "support_url",
+  "privacy_url",
+  "terms_url",
+] as const;
+
+export type ApplicationSettingKey =
+  (typeof APPLICATION_SETTING_KEYS)[number];
+
+export interface AdminCurrentMember {
+  id: string;
+  userId: string;
+  email: string;
+  displayName: string | null;
+  role: AdminMemberRole;
+  status: "active";
+  permissions: AdminPermission[];
+}

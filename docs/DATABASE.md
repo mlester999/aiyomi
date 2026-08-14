@@ -17,7 +17,11 @@ Rules:
 - make sensitive records private by default
 - preserve auditability without retaining unnecessary personal content
 
-Only the waitlist schema is required for Phase 1A. Future domains below are conceptual boundaries, not authorization to create those tables now.
+The waitlist schema is the accepted Phase 1A source of truth. Phase 2 adds only
+the admin authorization, audit, feature-flag, settings, and bounded waitlist
+operation structures required by the active admin scope. Future consumer
+domains below remain conceptual boundaries, not authorization to create those
+tables now.
 
 ## 2. Phase 1A table: `waitlist_signups`
 
@@ -46,7 +50,7 @@ Only the waitlist schema is required for Phase 1A. Future domains below are conc
 | `marketing_consent` | `boolean` | required, safe default | recorded marketing permission state |
 | `consent_at` | `timestamptz` | required only when consent is true | evidence of permission timing |
 | `resend_contact_id` | `text` | optional, unique where present | external audience synchronization reference |
-| `confirmation_sent_at` | `timestamptz` | optional | successful confirmation delivery request time |
+| `confirmation_sent_at` | `timestamptz` | optional | confirmation send acceptance time; delivery remains unknown |
 | `converted_user_id` | `uuid` | optional, future reference to Auth user | verified waitlist conversion |
 | `converted_at` | `timestamptz` | optional, paired with converted user | conversion time |
 | `created_at` | `timestamptz` | required, server default | authoritative creation time |
@@ -135,22 +139,105 @@ Conceptual flow:
 
 Never match an unverified user-supplied email. Account deletion, email changes, and restored accounts need explicit future policies before conversion is implemented.
 
-## 7. Future admin queries
+## 7. Phase 2 admin operational model
 
-The admin foundation may later support:
+### Authentication and membership
 
-- total leads, today, and this week
-- platform interest distribution
-- source and campaign performance
-- invited and converted status
-- referral performance
-- email, optional first name, platform, source, campaign, created date, invited status, and converted user in an authorized table
+Supabase Auth owns credentials and sessions. `admin_members` owns Aiyomi admin
+authorization. The two are deliberately separate because future consumer users
+will also exist in `auth.users`.
 
-These are privileged views. Prefer purpose-built server queries or database views that expose only necessary columns. Administrative reads and exports should be authorized and audited. Spreadsheet exports require a defined business purpose, access controls, and deletion handling.
+An admin membership contains a unique Auth user reference, constrained role,
+active or suspended status, optional display name, trusted timestamps, and
+actor references for creation and modification. Authentication without an
+active membership grants no admin access.
+
+The initial roles are:
+
+- `super_admin`
+- `admin`
+- `analyst`
+- `support`
+
+The role-to-permission matrix is seeded and changed through reviewed migrations,
+not a generic Phase 2 UI. `ADMIN.md` records the baseline matrix. The first
+Super Admin is inserted only through the owner-controlled process in
+`admin-runbook.md`. Never assign the role based on email domain, an environment
+variable, or first login.
+
+### Authorization functions and grants
+
+The preferred Phase 2 database surface is a set of bounded RPC functions. A
+function exposed to the `authenticated` role must derive identity from
+`auth.uid()`, require an active membership and exact permission, validate all
+inputs, and return only the required fields. Security-definer functions use an
+empty `search_path`, fully qualified object names, and explicit function grants.
+
+Do not grant broad authenticated select or update access to waitlist or admin
+tables merely because the application checks a role. Normal admin calls use the
+publishable key plus user session. RLS, grants, and RPC authorization deny
+future authenticated consumer users. A service-role client is reserved for a
+narrow server operation that genuinely cannot use caller-scoped authorization.
+
+### Waitlist reads and metrics
+
+Phase 2 supports privileged, server-paginated operations over the existing
+waitlist table:
+
+- total, today, 7-day, 30-day, confirmation-requested, referral, and conversion
+  counts
+- bounded signup trends and platform, source, campaign, and conversion
+  aggregates
+- allowlisted search, filters, sort order, date range, and page size
+- minimal lead-list rows and a permission-checked lead detail result
+- referral aggregates based only on stored referral relationships
+
+Queries must not fetch the entire waitlist for client-side filtering. Indexes
+should follow the actual search, filter, ordering, and aggregate plans. Avoid
+N+1 lookups and redundant exact counts. Conversion remains zero when no stored
+conversion exists.
+
+### Waitlist mutations and export
+
+Lifecycle mutations accept only existing constrained status values and enforce
+allowed transitions. The database function writes the status change and its
+audit event in one transaction. Phase 2 does not expose normal permanent
+waitlist deletion.
+
+Filtered export is an independently authorized operation. It reuses the bounded
+filter schema, has a hard row limit, returns an allowlisted field set, and writes
+one audit event containing the safe filter summary and row count. CSV bytes and
+full lead payloads are not stored in the audit table.
+
+### Append-only audit log
+
+`admin_audit_logs` records actor identity, effective membership and role,
+machine-readable action, target type and identifier, bounded JSON metadata,
+optional request ID, and server timestamp. Normal application roles cannot
+update, delete, or truncate audit rows. Audit events cover waitlist changes and
+exports, feature-flag and setting mutations, and membership changes.
+
+Audit metadata must not contain passwords, cookies, access or refresh tokens,
+authorization headers, provider keys, complete exports, or unnecessary contact
+data. Retention and privileged access must be approved before Production.
+
+### Feature flags and settings
+
+Feature flags use a constrained key and explicit Development, Staging, or
+Production environment. Mutations are authorized and audited. The trusted
+server's `AIYOMI_ENVIRONMENT` value must match the hosted project's immutable
+environment singleton; a caller cannot select Production while operating a
+Development session.
+
+Phase 2 settings are limited to approved non-secret operational values. Every
+setting has a strict value schema, environment boundary where relevant, an
+authorized mutation, and an audit event. Provider credentials and other secrets
+remain in deployment secret stores, never settings rows.
 
 ## 8. Future domain boundaries
 
-These domains guide later schema design but must not be implemented in Phase 1A without explicit scope.
+These domains guide later consumer schema design and remain outside Phase 2
+without explicit future scope.
 
 ### Identity and preferences
 
@@ -227,13 +314,19 @@ For every schema change:
 
 Never edit an already applied migration to hide drift. Never use a Production project as the first validation target.
 
+Admin bootstrap and environment promotion require the separate owner checks in
+`admin-runbook.md`. Credential-free CI does not apply migrations or prove RLS.
+Hosted authorization tests run only after the selected Development or Staging
+project has been independently confirmed.
+
 ## 12. Open decisions
 
 - exact status vocabulary and suppression handling for the waitlist
 - normalized email storage implementation and compatibility with future Auth matching
 - retention period for non-converted and unsubscribed waitlist records
 - whether referral codes are issued at signup or during a later campaign
-- admin role and export permissions
+- audit-log and export retention periods
+- exact Phase 2 setting allowlist
+- Production admin session and MFA policy
 - job mechanism for retrying email synchronization
 - future regional residency and backup requirements
-

@@ -1,0 +1,11 @@
+import type { NextRequest } from "next/server";
+
+import { refreshAdminSession } from "@/lib/supabase/proxy";
+
+export const proxy = (request: NextRequest) => refreshAdminSession(request);
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};

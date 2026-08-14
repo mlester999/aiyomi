@@ -5,13 +5,15 @@ import {
   createRateLimitKey,
   createWaitlistRateLimiterFromEnvironment,
 } from "@/lib/waitlist/rate-limit";
-import { WaitlistService } from "@/lib/waitlist/service";
 import {
+  WaitlistPausedError,
   WaitlistRateLimitError,
+  WaitlistService,
   WaitlistUnavailableError,
   WaitlistValidationError,
 } from "@/lib/waitlist/service";
 import { createSupabaseWaitlistRepository } from "@/lib/waitlist/supabase-repository";
+import { isWaitlistEnabled } from "@/lib/waitlist/feature-flags";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -135,6 +137,7 @@ export async function POST(request: Request) {
   try {
     await getWaitlistService().join(input, {
       rateLimitKey: createRateLimitKey(request.headers),
+      beforeInsert: isWaitlistEnabled,
       onNonCriticalError: () => {
         logWaitlistEvent(requestId, "email_deferred", startedAt, "warn");
       },
@@ -153,6 +156,15 @@ export async function POST(request: Request) {
       },
     );
   } catch (error) {
+    if (error instanceof WaitlistPausedError) {
+      logWaitlistEvent(requestId, "storage_unavailable", startedAt, "warn");
+      return errorResponse(
+        "The waitlist is temporarily paused. Please check back soon.",
+        503,
+        requestId,
+      );
+    }
+
     if (error instanceof WaitlistValidationError) {
       logWaitlistEvent(requestId, "invalid_request", startedAt, "warn");
       return errorResponse(

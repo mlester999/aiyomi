@@ -2,7 +2,11 @@
 
 ## 1. Scope and goals
 
-Aiyomi uses one TypeScript monorepo for the public web experience, future admin application, future mobile application, shared contracts, and hosted Supabase assets. The architecture should support the current landing page and waitlist without prematurely implementing future roadmap phases.
+Aiyomi uses one TypeScript monorepo for the public web experience, the Phase 2
+admin application, the future mobile application, shared contracts, and hosted
+Supabase assets. The architecture supports the accepted landing page and
+waitlist while adding only the authorized admin operational surface. Phase 3
+and later product systems remain deferred.
 
 Goals:
 
@@ -39,7 +43,7 @@ No Docker, local Supabase containers, or `supabase start` command is required. A
 /
 ├── apps/
 │   ├── web/             public marketing site and secure waitlist endpoint
-│   ├── admin/           bounded admin foundation
+│   ├── admin/           authenticated Phase 2 operational portal
 │   └── mobile/          Expo and Expo Router foundation
 ├── packages/
 │   ├── types/           shared TypeScript types
@@ -105,11 +109,28 @@ Browser code may use only public configuration. It never receives Supabase servi
 
 ### `apps/admin`
 
-Current responsibility is a valid, clean foundation only. Full admin functionality is deferred.
+Current Phase 2 responsibilities are:
 
-Future routes may include dashboard, users, waitlist, analytics, referrals, subscriptions, AI provider configuration, models, prompts, usage, costs, Companions, cosmetics, achievements, quests, rewards, competitions, leaderboards, abuse flags, email, feature flags, settings, and audit logs.
+- authenticate pre-provisioned admin users through Supabase Auth without public
+  registration
+- require an explicit active admin membership in addition to authentication
+- authorize dashboard, waitlist, analytics, referrals, audit, membership,
+  feature-flag, settings, and export operations by role and permission
+- use real waitlist data with server-side search, filtering, sorting,
+  pagination, details, and bounded lifecycle mutations
+- audit privileged changes and exports
+- display and enforce the explicitly configured operating environment
 
-All future admin data access requires authenticated server-side authorization. Hiding a route in navigation is not authorization.
+Admin routes use cookie-backed Supabase SSR sessions. Next.js Proxy refreshes
+the session, protected layouts provide a coarse route gate, and request-scoped
+server data-access functions verify the exact permission before every read or
+mutation. PostgreSQL grants, RLS, and bounded RPC functions repeat the
+authorization decision. Hiding a route in navigation is not authorization.
+
+Subscriptions, AI provider controls, Companion content, rewards, competition,
+billing, and unrelated product operations remain deferred. See
+[`ADMIN.md`](ADMIN.md) for the Phase 2 boundaries and
+[`admin-runbook.md`](admin-runbook.md) for owner operations.
 
 ### `apps/mobile`
 
@@ -141,11 +162,16 @@ Use three separate hosted projects or equivalent isolated environments:
 
 | Environment | Purpose | Data rule |
 | --- | --- | --- |
-| Development | local developer and preview validation | synthetic or approved non-production data only |
+| Development | local app and approved preview validation against hosted Development | synthetic or approved non-production data only |
 | Staging | release candidate validation and integration testing | non-production data only |
 | Production | real customer traffic | never used for development validation |
 
 Each environment must have distinct project references, API keys, database credentials, OAuth configuration, redirect URLs, and deployment variables. Production secrets must not be copied into local `.env` files for convenience.
+
+"Local validation" means running the application or deterministic tests on a
+developer machine while connecting only to the hosted Development project. It
+does not mean running a local Supabase stack. Credential-free unit tests and
+builds must remain separate from owner-authorized hosted integration checks.
 
 The Supabase CLI may be used for:
 
@@ -171,7 +197,33 @@ See `DATABASE.md` for the current waitlist model and future conceptual domains.
 
 ## 9. Authentication and authorization path
 
-Future mobile authentication uses Supabase Auth with email and password, Google Sign-In, email verification, and password reset.
+Phase 2 admin authentication uses Supabase Auth email, password, and password
+recovery. There is no public signup. The owner creates or identifies an Auth
+user and performs the first Super Admin membership bootstrap through the
+trusted process in `admin-runbook.md`. Authentication alone does not grant
+admin access.
+
+The admin session path is:
+
+```text
+Supabase Auth session cookie
+  -> request-scoped SSR client
+  -> signed session validation
+  -> active admin membership
+  -> exact role permission
+  -> bounded RPC or RLS-authorized query
+  -> minimal server-rendered result
+```
+
+Proxy is responsible for session refresh and optimistic redirection only. It
+must preserve refreshed cookies and private no-store response headers. Final
+authorization remains inside the server data-access function, server action,
+route handler, and database operation. User-scoped clients must never be shared
+between requests.
+
+Future mobile authentication uses Supabase Auth with email and password,
+Google Sign-In, email verification, and password reset, but remains outside
+Phase 2.
 
 Authorization layers are distinct:
 
@@ -180,7 +232,11 @@ Authorization layers are distinct:
 3. **Application authorization:** which actions and administrative roles are permitted
 4. **Provider authorization:** which server component can use external credentials
 
-Service credentials may bypass RLS and therefore remain limited to tightly scoped server modules. Client applications use publishable or anonymous keys plus RLS, never a service-role key.
+Service credentials may bypass RLS and therefore remain limited to tightly
+scoped `server-only` modules for operations that genuinely require elevated
+provider access. Normal admin reads and writes use a publishable key plus the
+validated user session so database authorization remains effective. A service
+credential is never a general admin data client.
 
 ## 10. Server-side integrations
 
@@ -206,7 +262,13 @@ Configuration is separated into:
 - **server-only:** Supabase service credentials if genuinely required, Resend API key, sender settings, future AI keys, webhook secrets, and integration credentials
 - **build-independent product config:** product name, tagline, official handles, support address, feature availability, and legal destinations
 
-Environment variables must be validated at the process boundary. Missing optional Resend configuration should disable email cleanly while keeping database waitlist testing possible. Missing required database configuration should fail explicitly on the server, not fall back to production or pretend success.
+Environment variables must be validated at the process boundary. Admin runtime
+configuration uses the server-only `AIYOMI_ENVIRONMENT` label and must not infer
+Production from a hostname. That label must match the hosted project's locked
+admin environment value. Missing optional Resend configuration should
+disable email cleanly while keeping database waitlist testing possible. Missing
+required database or admin Auth configuration should fail explicitly when the
+runtime operation begins, not fall back to Production or pretend success.
 
 Real secrets are never committed, logged, bundled, or returned to a client.
 
@@ -239,9 +301,17 @@ Future production observability should define ownership, alert thresholds, reten
 - Vercel hosts web and admin with environment-specific variables.
 - EAS is reserved for future mobile builds.
 - Supabase remains a separately managed hosted service per environment.
-- Basic CI must run installation, lint, typecheck, relevant tests, and production web and admin builds without production secrets.
+- Basic CI must run a frozen install, peer check, lint, typecheck, relevant
+  tests, safety scans, and production web and admin builds without hosted
+  credentials.
 - Preview deployments must use development or isolated preview configuration, never production service credentials.
 - Release validation must identify the target Supabase project before migrations or end-to-end writes.
+- Hosted admin integration checks run separately against a confirmed
+  Development or Staging project and use synthetic or approved non-production
+  data.
+- Database changes are promoted Development, then Staging, then Production only
+  after the owner approves each environment. A successful non-production check
+  never authorizes automatic Production promotion.
 
 ## 15. Architectural decision record
 
@@ -252,6 +322,10 @@ Future production observability should define ownership, alert thresholds, reten
 - Supabase and Next.js server capabilities before a dedicated API server
 - forward-only database migrations
 - Supabase as waitlist source of truth and Resend as delivery and audience service
+- cookie-backed Supabase SSR for the Next.js admin session
+- explicit active admin membership plus migration-controlled role permissions
+- request-scoped server authorization backed by grants, RLS, and bounded RPCs
+- append-only audit records for privileged admin mutations and exports
 - server-side provider secrets
 - provider-independent future AI gateway
 - offline-aware future mobile contracts, without implementing sync in Phase 1A
@@ -262,10 +336,10 @@ Future production observability should define ownership, alert thresholds, reten
 - job queue and scheduled workflow provider
 - production observability vendor
 - AI provider and model routing policy
-- admin role model and support tooling
+- Production admin MFA and session-lifetime policy
+- broader admin invitation and support tooling beyond Phase 2
 - storage buckets and retention policies
 - realtime use cases
 - regional data residency and launch-region requirements
 
 These decisions should be made when a scoped phase provides evidence, not in anticipation alone.
-
