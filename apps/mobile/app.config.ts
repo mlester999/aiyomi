@@ -58,6 +58,7 @@ const androidPackage =
 const easProjectId =
   optionalPublicValue(process.env.EXPO_PUBLIC_EAS_PROJECT_ID) ||
   DEFAULT_EAS_PROJECT_ID;
+const updatesUrl = `https://u.expo.dev/${easProjectId}`;
 const supabaseProjectRef =
   optionalPublicValue(process.env.EXPO_PUBLIC_SUPABASE_PROJECT_REF) ||
   (environment === "development"
@@ -132,6 +133,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundler: "metro",
     output: "static",
     favicon: "./assets/icons/aiyomi-icon.png",
+  },
+  updates: {
+    url: updatesUrl,
+  },
+  runtimeVersion: {
+    policy: "appVersion",
   },
   extra: {
     ...config.extra,

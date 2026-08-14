@@ -333,9 +333,9 @@ Future production observability should define ownership, alert thresholds, reten
 ## 14. Deployment and validation
 
 - Vercel hosts web and admin with environment-specific variables.
-- EAS provides isolated development, preview, and production profiles. Phase 3
-  uses installed Development Builds for native validation and does not publish
-  to stores.
+- EAS provides isolated development, staging, preview-alias, and production
+  profiles. Phase 3 uses installed Development Builds for native validation and
+  does not publish to stores.
 - Supabase remains a separately managed hosted service per environment.
 - Basic CI must run a frozen install, peer check, lint, typecheck, relevant
   tests, safety scans, production web and admin builds, Expo public-config

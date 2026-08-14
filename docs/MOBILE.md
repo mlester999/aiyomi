@@ -88,10 +88,12 @@ hosted environment record. Stop if Development or Staging cannot be proven.
 
 ## 5. Development Build and EAS
 
-`apps/mobile/eas.json` defines development, preview, and production profiles.
-The development profile creates an internal Development Build. Preview targets
-Staging. A production profile is configuration only and is not permission to
-publish or target Production.
+`apps/mobile/eas.json` defines development, staging, preview-alias, and
+production profiles. The development profile creates an internal Development
+Build. Staging uses the isolated Staging channel, while the preview alias
+retains its preview channel and resolves the Staging environment. A production
+profile is configuration only and is not permission to publish or target
+Production.
 
 Owner setup is required before native builds:
 
