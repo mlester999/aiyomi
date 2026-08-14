@@ -1018,34 +1018,49 @@ td small {
 
 .mobile-record-card {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   border: 1px solid var(--line);
   border-radius: 0.9rem;
   background: var(--paper-strong);
   padding: 0.85rem;
   min-width: 0;
+  max-width: 100%;
   width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .mobile-record-card-heading,
 .mobile-record-card-footer,
 .mobile-record-meta {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
 }
 
 .mobile-record-card-heading > div {
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
 }
 
 .mobile-record-card-heading > div > strong,
 .mobile-record-card-heading > div > span {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.mobile-record-card-heading > .badge,
+.mobile-record-card-footer > .badge,
+.mobile-record-card-footer > .button {
+  flex: 0 0 auto;
+  max-width: 100%;
 }
 
 .mobile-record-card-heading strong {
@@ -1063,6 +1078,12 @@ td small {
   flex-wrap: wrap;
   color: var(--ink-soft);
   font-size: 0.65rem;
+}
+
+.mobile-record-meta > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .mobile-record-card-footer {
@@ -1643,6 +1664,7 @@ td small {
   .mobile-record-list {
     display: grid;
     gap: 0.7rem;
+    grid-template-columns: minmax(0, 1fr);
     min-width: 0;
     width: 100%;
   }
