@@ -2,11 +2,11 @@
 
 ## 1. Scope and goals
 
-Aiyomi uses one TypeScript monorepo for the public web experience, the Phase 2
-admin application, the future mobile application, shared contracts, and hosted
-Supabase assets. The architecture supports the accepted landing page and
-waitlist while adding only the authorized admin operational surface. Phase 3
-and later product systems remain deferred.
+Aiyomi uses one TypeScript monorepo for the public web experience, accepted
+Phase 2 admin application, active Phase 3 consumer mobile application, shared
+contracts, and hosted Supabase assets. Phase 3 adds only the first-run, identity,
+personalization, notification, and empty app-shell foundations. The Daily Life
+Engine and later systems remain deferred.
 
 Goals:
 
@@ -29,7 +29,7 @@ Goals:
 | Language | TypeScript |
 | Public web | Next.js, Tailwind CSS, Vercel |
 | Admin | Next.js, Vercel |
-| Mobile | React Native, Expo, TypeScript, Expo Router, future EAS builds |
+| Mobile | React Native, Expo, TypeScript, Expo Router, Development Builds and EAS |
 | Backend | Hosted Supabase with PostgreSQL, Auth, RLS, Storage, Realtime and Edge Functions where useful |
 | Email | Resend behind a server-side service abstraction |
 | Validation | Shared Zod schemas where appropriate |
@@ -44,7 +44,7 @@ No Docker, local Supabase containers, or `supabase start` command is required. A
 ├── apps/
 │   ├── web/             public marketing site and secure waitlist endpoint
 │   ├── admin/           authenticated Phase 2 operational portal
-│   └── mobile/          Expo and Expo Router foundation
+│   └── mobile/          Phase 3 consumer app and Expo Router flows
 ├── packages/
 │   ├── types/           shared TypeScript types
 │   ├── schemas/         validation and transport schemas
@@ -134,9 +134,26 @@ billing, and unrelated product operations remain deferred. See
 
 ### `apps/mobile`
 
-Current responsibility is a valid Expo, React Native, TypeScript, and Expo Router foundation. Complete authentication, onboarding, daily planning, Companion, AI, Focus, reflection, rewards, and social screens are deferred to their roadmap phases.
+Current Phase 3 responsibilities are:
 
-Future mobile architecture should support local identifiers, cached Today data, an uninterrupted local timer, queued mutations, asset caching, and reconciliation after connectivity returns. AI calls remain online operations.
+- resolve first launch, returning signed-out, incomplete onboarding, and completed onboarding centrally
+- explain the product before signup without collecting detailed private life data
+- provide Supabase consumer signup, login, Google OAuth, verification, recovery,
+  secure native sessions, and fixed deep-link callbacks
+- persist and resume private profile, Companion, Life Area, schedule,
+  commitment, intention, obstacle, and notification choices
+- register user-owned device push tokens only after contextual permission
+- render a personalized but empty Today shell with no fake user data
+- cache only the limited state needed for a recognizable offline-aware shell
+
+The mobile app uses RLS-authorized caller-scoped Supabase access. Trusted
+security-definer functions derive identity from `auth.uid()` for idempotent
+profile repair, verified waitlist conversion, and atomic onboarding completion.
+See [`MOBILE.md`](MOBILE.md), [`ONBOARDING.md`](ONBOARDING.md),
+[`AUTH.md`](AUTH.md), and [`NOTIFICATIONS.md`](NOTIFICATIONS.md).
+
+Queued mutations, conflict resolution, a local timer, and cached Daily Life
+Engine records remain future work. AI calls remain online operations.
 
 ## 6. Current waitlist request path
 
@@ -193,7 +210,8 @@ Before a mutating command, verify the linked project reference and environment. 
 - Application deployments must tolerate safe migration ordering when a rolling deployment is possible.
 - Critical timestamps and competitive records use trusted server time, not client time.
 
-See `DATABASE.md` for the current waitlist model and future conceptual domains.
+See `DATABASE.md` for the current waitlist, admin, and Phase 3 consumer models
+plus future conceptual domains.
 
 ## 9. Authentication and authorization path
 
@@ -221,9 +239,11 @@ authorization remains inside the server data-access function, server action,
 route handler, and database operation. User-scoped clients must never be shared
 between requests.
 
-Future mobile authentication uses Supabase Auth with email and password,
-Google Sign-In, email verification, and password reset, but remains outside
-Phase 2.
+Phase 3 mobile authentication uses Supabase Auth with email and password,
+Google Sign-In, email verification, password reset, PKCE, a fixed Aiyomi callback,
+and native secure session storage. Consumer authentication grants access only
+to caller-owned mobile records. It does not satisfy admin membership or an
+admin permission.
 
 Authorization layers are distinct:
 
@@ -271,6 +291,11 @@ required database or admin Auth configuration should fail explicitly when the
 runtime operation begins, not fall back to Production or pretend success.
 
 Real secrets are never committed, logged, bundled, or returned to a client.
+The mobile app additionally requires an explicit public environment and
+Supabase project reference. In Development, both must resolve to the confirmed
+`aiyomi-dev` project. Public configuration enables a client only after the URL
+and project reference agree. This client check complements, but never replaces,
+the operator's remote environment proof before mutation.
 
 ## 12. Analytics
 
@@ -288,6 +313,15 @@ Analytics uses vendor-neutral event contracts so a provider can be connected lat
 
 Properties must be enumerated and bounded. Do not send email, first name, brain dumps, task text, reflections, or other sensitive free-form content to analytics.
 
+Phase 3 mobile contracts add bounded app-open, intro, auth, onboarding,
+Companion, Life Area, notification-permission, completion, and first-Today
+events. They expose only allowlisted categories, booleans, and counts. Mobile
+analytics never receives email, names, improvement text, obstacle text,
+schedules, commitments, push tokens, user IDs, or device fingerprints. The
+mobile adapter may attach an opaque random installation ID and a per-runtime
+session ID as anonymous delivery context. Neither value appears in event
+properties or contains account identity.
+
 ## 13. Reliability and observability
 
 Server operations should produce structured, privacy-safe logs with a request or correlation identifier. Log categories may include validation rejected, throttled, database unavailable, database accepted, email sync failed, and email accepted. Do not log raw secrets or complete sensitive payloads.
@@ -299,16 +333,19 @@ Future production observability should define ownership, alert thresholds, reten
 ## 14. Deployment and validation
 
 - Vercel hosts web and admin with environment-specific variables.
-- EAS is reserved for future mobile builds.
+- EAS provides isolated development, preview, and production profiles. Phase 3
+  uses installed Development Builds for native validation and does not publish
+  to stores.
 - Supabase remains a separately managed hosted service per environment.
 - Basic CI must run a frozen install, peer check, lint, typecheck, relevant
-  tests, safety scans, and production web and admin builds without hosted
-  credentials.
+  tests, safety scans, production web and admin builds, Expo public-config
+  validation, and a credential-free mobile web export without hosted credentials.
 - Preview deployments must use development or isolated preview configuration, never production service credentials.
 - Release validation must identify the target Supabase project before migrations or end-to-end writes.
-- Hosted admin integration checks run separately against a confirmed
+- Hosted admin and mobile integration checks run separately against a confirmed
   Development or Staging project and use synthetic or approved non-production
-  data.
+  data. Mobile checks include two-user ownership denial and consumer denial
+  from protected admin operations.
 - Database changes are promoted Development, then Staging, then Production only
   after the owner approves each environment. A successful non-production check
   never authorizes automatic Production promotion.
@@ -328,7 +365,12 @@ Future production observability should define ownership, alert thresholds, reten
 - append-only audit records for privileged admin mutations and exports
 - server-side provider secrets
 - provider-independent future AI gateway
-- offline-aware future mobile contracts, without implementing sync in Phase 1A
+- limited offline-aware mobile shell without queued-write or sync claims
+- centralized mobile launch resolution and resumable server-backed onboarding
+- native secure session storage with PKCE and fixed mobile auth callbacks
+- caller-owned consumer tables protected with grants, forced RLS, and ownership policies
+- contextual optional notification permission and multi-device token records
+- trusted idempotent profile creation, verified waitlist conversion, and atomic onboarding completion
 
 ### Deferred decisions
 
@@ -341,5 +383,8 @@ Future production observability should define ownership, alert thresholds, reten
 - storage buckets and retention policies
 - realtime use cases
 - regional data residency and launch-region requirements
+- account deletion and its waitlist-conversion retention behavior
+- production mobile bundle identifiers, provider credentials, and store publishing
+- production remote-notification orchestration and delivery operations
 
 These decisions should be made when a scoped phase provides evidence, not in anticipation alone.

@@ -47,7 +47,7 @@ It is also not a medical, therapeutic, legal, or financial service. The Companio
 
 ## 4. Product stage and scope
 
-### Current implementation scope: Phase 0 and Phase 1A
+### Current implementation scope: Phase 3
 
 The current bounded outcome is:
 
@@ -55,7 +55,9 @@ The current bounded outcome is:
 - the cozy, responsive public Aiyomi landing page
 - a secure hosted Supabase-backed waitlist
 - a Resend-ready confirmation email integration
-- clean foundations for admin and Expo mobile apps
+- an accepted authenticated and authorized Phase 2 admin foundation
+- the Phase 3 Expo consumer foundation with first-run routing, authentication,
+  resumable personalization, optional notifications, and an empty Today shell
 - shared contracts, schemas, domain logic, configuration, tokens, analytics definitions, and testing helpers where justified
 - durable documentation for future phases
 
@@ -63,7 +65,9 @@ The landing page may preview future product concepts, but previews are not claim
 
 ### Explicitly out of scope now
 
-Do not implement the complete mobile app, AI Companion backend, Life Model, Focus engine, Day Score algorithm, virtual world, mini-games, billing, subscriptions, social graph, leaderboards, competitive rewards, or full admin system in Phase 0 or Phase 1A.
+Do not implement the Phase 4 Daily Life Engine, AI Companion backend, Life
+Model, Focus engine, Day Score algorithm, virtual world, mini-games, billing,
+subscriptions, social graph, leaderboards, or competitive rewards in Phase 3.
 
 ## 5. Durable domain model
 
@@ -208,7 +212,9 @@ The Life Model is not implemented in Phase 1A. Its durable boundaries are:
 
 ## 11. Authentication and onboarding
 
-Future mobile authentication supports email and password, Google Sign-In, email verification, and password reset. First-time users complete a lightweight 2 to 4 minute onboarding without pre-created tasks, sessions, habits, or routines.
+Phase 3 mobile authentication supports email and password, Google Sign-In,
+email verification, and password reset. First-time users complete a lightweight,
+resumable onboarding without pre-created tasks, sessions, habits, or routines.
 
 Potential onboarding topics include first name, timezone, typical wake and sleep times, schedule flexibility, fixed commitments, Life Areas, current priorities, desired improvements, common distractions, and accountability style. The critical question is:
 
@@ -297,4 +303,3 @@ Analytics must never include sensitive free-form content. Public marketing must 
 - Life Model memory categories, retention periods, and consent surfaces require privacy and safety review before implementation.
 - Pricing, plan limits, virtual currency economics, competitive normalization, and real-world rewards remain undecided.
 - Final legal URLs, social handles, store URLs, support email, sending domain, and launch markets must stay configuration-backed until confirmed.
-

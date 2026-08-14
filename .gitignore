@@ -18,6 +18,7 @@ coverage/
 # Expo
 .expo/
 web-build/
+dist-web/
 
 # Hosting and tooling
 .vercel/

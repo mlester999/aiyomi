@@ -20,6 +20,7 @@ jobs:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_ADMIN_URL: http://localhost:3001
+      EXPO_PUBLIC_AIYOMI_ENVIRONMENT: development
 
     steps:
       - name: Check out repository
@@ -58,12 +59,24 @@ jobs:
             exit 1
           fi
 
+          mobile_server_variable_pattern='(SUPABASE_(SERVICE_ROLE|SECRET)_KEY|SUPABASE_DB_PASSWORD|RESEND_API_KEY|GOOGLE_CLIENT_SECRET|EXPO_TOKEN|APPLE_APP_SPECIFIC_PASSWORD|GOOGLE_SERVICE_ACCOUNT_KEY)'
+          if git grep -I -q -E "$mobile_server_variable_pattern" -- \
+            apps/mobile \
+            ':(exclude)apps/mobile/.env.example'; then
+            echo "Mobile application files reference a server-only credential."
+            exit 1
+          fi
+
           for variable in \
             SUPABASE_ACCESS_TOKEN \
             SUPABASE_DB_PASSWORD \
             SUPABASE_SECRET_KEY \
             SUPABASE_SERVICE_ROLE_KEY \
-            RESEND_API_KEY; do
+            RESEND_API_KEY \
+            GOOGLE_CLIENT_SECRET \
+            EXPO_TOKEN \
+            APPLE_APP_SPECIFIC_PASSWORD \
+            GOOGLE_SERVICE_ACCOUNT_KEY; do
             if printenv "$variable" >/dev/null 2>&1; then
               echo "$variable must not be injected into the credential-free validation job."
               exit 1
@@ -76,7 +89,7 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck --force
 
-      - name: Test
+      - name: Test workspace including mobile
         run: pnpm test --force
 
       - name: Build public web app
@@ -86,4 +99,7 @@ jobs:
         run: pnpm --filter @aiyomi/admin build
 
       - name: Validate Expo configuration
-        run: pnpm --filter @aiyomi/mobile exec expo config --type public
+        run: pnpm --filter @aiyomi/mobile validate:config
+
+      - name: Export credential-free mobile web bundle
+        run: pnpm --filter @aiyomi/mobile validate:export

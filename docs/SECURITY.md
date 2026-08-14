@@ -40,6 +40,14 @@ not be rendered before those checks complete.
 
 Supabase PostgreSQL is the waitlist source of truth. Database constraints enforce invariants and uniqueness. RLS and grants prevent anonymous reads and unintended writes.
 
+### Mobile application
+
+The Phase 3 mobile client is untrusted even after authentication. It may use a
+public Supabase URL and publishable key plus the caller's session. Native tokens
+use secure platform storage, but every private read and write still requires
+caller ownership through grants and forced RLS. The app cannot assert a trusted
+user id, verified email, onboarding completion, admin role, or provider secret.
+
 ### Resend
 
 Resend receives only the contact and delivery data needed for the configured waitlist message or audience synchronization. It is not the authoritative waitlist database. Its API key stays server-side.
@@ -139,7 +147,8 @@ New and existing normalized emails receive the same friendly success response. T
 
 ## 6. Authentication and account security
 
-Future mobile authentication supports email and password, Google Sign-In, email verification, and password reset through Supabase Auth.
+Phase 3 mobile authentication supports email and password, Google Sign-In,
+email verification, and password reset through Supabase Auth.
 
 Before release:
 
@@ -153,6 +162,12 @@ Before release:
 - provide account deletion and recovery behavior consistent with privacy commitments
 
 Google conversion matching must use a trusted verified provider email, never a client-asserted address.
+
+Native sessions use PKCE and Expo Secure Store. Auth callbacks accept only the
+fixed Aiyomi scheme and path plus allowlisted callback parameters. Web storage
+and web-rendered OAuth checks are not evidence of native session security.
+Account deletion remains deferred until conversion history, retention, and a
+server-authorized deletion workflow are approved.
 
 ### Phase 2 admin authentication and sessions
 
@@ -186,7 +201,15 @@ are implemented and tested.
 
 ## 7. Authorization and RLS
 
-Every user-owned future table requires an explicit ownership rule. Common policy intent is that an authenticated user can access only their own private records, with carefully bounded sharing tables for explicit social use.
+Every user-owned table requires an explicit ownership rule. An authenticated
+user can access only their own private records, with carefully bounded sharing
+tables only when a later explicit social scope requires them.
+
+Phase 3 applies that rule to profiles, Companion choices, Life Areas, life
+roles, schedule preferences, fixed commitments, intentions, obstacles,
+notification preferences, and device push tokens. Catalog definitions are
+read-only and active-only for consumers. Caller-scoped workflow functions
+derive identity from `auth.uid()` and accept no arbitrary owner id or email.
 
 Admin access requires:
 
@@ -215,6 +238,10 @@ empty `search_path`, fully qualify objects, check the exact permission, validate
 bounded input, return minimal data, and revoke default execution from `public`
 and `anon`. Direct writes from arbitrary authenticated users to admin tables or
 waitlist records are prohibited.
+
+Consumer and admin identities may share Supabase Auth, but their authorization
+paths do not merge. A consumer without an active `admin_members` row and exact
+permission must fail protected admin reads, mutations, RPCs, and exports.
 
 Privileged mutations and exports require an append-only audit record. Audit
 metadata is bounded and excludes passwords, session tokens, authorization
@@ -362,6 +389,10 @@ Alerting should focus on actionable patterns such as unusual signup volume, repe
 - Keep the ordinary CI job credential-free. Hosted integration checks belong in
   a separate owner-authorized job or manual run against proven Development or
   Staging.
+- Validate mobile tests, Expo public configuration, and a web bundle export in
+  ordinary CI without injecting Supabase, EAS, OAuth, APNs, or FCM credentials.
+- Treat Expo Web export as bundle validation only. Native security and provider
+  behavior require installed Development Builds and controlled test users.
 - Review dependency updates and avoid unnecessary packages.
 - Keep build logs free of environment values.
 - Use protected deployment environments for sensitive credentials.
@@ -389,7 +420,9 @@ Do not promise a response time or legal process until operations can meet it.
   server and database role authorization, final-Super-Admin protection,
   append-only audit logs, export controls, environment isolation, and deployed
   security headers
-- **Mobile Auth:** redirect and deep-link review, secure token storage, verification, deletion
+- **Mobile Auth and onboarding:** fixed redirects, secure native token storage,
+  verified conversion, caller-owned RLS, atomic completion, optional
+  notifications, token privacy, and explicit deletion deferral
 - **Daily Life Engine:** user ownership, offline conflict integrity, private defaults
 - **AI and Life Model:** context minimization, memory consent, deletion, provider review, safety evaluations
 - **Focus and Day Score:** trusted event provenance and explainable calculations
@@ -406,6 +439,9 @@ Do not promise a response time or legal process until operations can meet it.
 - Production admin MFA and session-lifetime policy
 - admin invitation and lost-factor recovery procedure
 - encryption needs beyond provider-managed storage and transport
+- mobile account deletion and converted-waitlist retention behavior
+- final mobile identifiers, native provider credentials, and production session policy
+- stale push-token retention and remote notification delivery operations
 - competitive review and appeal process
 - vulnerability disclosure process
 - AI provider and integration risk assessments

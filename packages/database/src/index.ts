@@ -168,6 +168,81 @@ export type Database = {
           },
         ]
       }
+      companion_definitions: {
+        Row: {
+          active: boolean
+          asset_key: string
+          created_at: string
+          description: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          asset_key: string
+          created_at?: string
+          description: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          asset_key?: string
+          created_at?: string
+          description?: string
+          id?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      device_push_tokens: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          expo_push_token: string | null
+          id: string
+          installation_id: string
+          last_seen_at: string
+          permission_status: Database["public"]["Enums"]["notification_permission_status"]
+          platform: Database["public"]["Enums"]["mobile_device_platform"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          expo_push_token?: string | null
+          id?: string
+          installation_id: string
+          last_seen_at?: string
+          permission_status?: Database["public"]["Enums"]["notification_permission_status"]
+          platform: Database["public"]["Enums"]["mobile_device_platform"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          expo_push_token?: string | null
+          id?: string
+          installation_id?: string
+          last_seen_at?: string
+          permission_status?: Database["public"]["Enums"]["notification_permission_status"]
+          platform?: Database["public"]["Enums"]["mobile_device_platform"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           created_at: string
@@ -211,6 +286,407 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fixed_commitments: {
+        Row: {
+          active: boolean
+          created_at: string
+          days_of_week: number[]
+          end_time: string
+          id: string
+          start_time: string
+          timezone: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          days_of_week: number[]
+          end_time: string
+          id?: string
+          start_time: string
+          timezone: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          days_of_week?: number[]
+          end_time?: string
+          id?: string
+          start_time?: string
+          timezone?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      life_area_definitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      life_role_definitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          achievements: boolean
+          break_finished: boolean
+          created_at: string
+          daily_reflection: boolean
+          focus_reminder: boolean
+          morning_plan: boolean
+          quiet_end: string
+          quiet_hours_enabled: boolean
+          quiet_start: string
+          schedule_adjustments: boolean
+          streak_reminder: boolean
+          timezone: string | null
+          upcoming_activity: boolean
+          updated_at: string
+          user_id: string
+          weekly_recap: boolean
+        }
+        Insert: {
+          achievements?: boolean
+          break_finished?: boolean
+          created_at?: string
+          daily_reflection?: boolean
+          focus_reminder?: boolean
+          morning_plan?: boolean
+          quiet_end?: string
+          quiet_hours_enabled?: boolean
+          quiet_start?: string
+          schedule_adjustments?: boolean
+          streak_reminder?: boolean
+          timezone?: string | null
+          upcoming_activity?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_recap?: boolean
+        }
+        Update: {
+          achievements?: boolean
+          break_finished?: boolean
+          created_at?: string
+          daily_reflection?: boolean
+          focus_reminder?: boolean
+          morning_plan?: boolean
+          quiet_end?: string
+          quiet_hours_enabled?: boolean
+          quiet_start?: string
+          schedule_adjustments?: boolean
+          streak_reminder?: boolean
+          timezone?: string | null
+          upcoming_activity?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_recap?: boolean
+        }
+        Relationships: []
+      }
+      obstacle_definitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id: string
+          key: string
+          name: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      onboarding_intentions: {
+        Row: {
+          created_at: string
+          energy_baseline: Database["public"]["Enums"]["energy_baseline"] | null
+          improvement_focus: string
+          pre_auth_intent: Database["public"]["Enums"]["pre_auth_intent"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy_baseline?: Database["public"]["Enums"]["energy_baseline"] | null
+          improvement_focus: string
+          pre_auth_intent?: Database["public"]["Enums"]["pre_auth_intent"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy_baseline?: Database["public"]["Enums"]["energy_baseline"] | null
+          improvement_focus?: string
+          pre_auth_intent?: Database["public"]["Enums"]["pre_auth_intent"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          locale: string | null
+          onboarding_completed_at: string | null
+          onboarding_status: Database["public"]["Enums"]["mobile_onboarding_status"]
+          onboarding_step: Database["public"]["Enums"]["mobile_onboarding_step"] | null
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id: string
+          locale?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_status?: Database["public"]["Enums"]["mobile_onboarding_status"]
+          onboarding_step?: Database["public"]["Enums"]["mobile_onboarding_step"] | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          locale?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_status?: Database["public"]["Enums"]["mobile_onboarding_status"]
+          onboarding_step?: Database["public"]["Enums"]["mobile_onboarding_step"] | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_companions: {
+        Row: {
+          companion_definition_id: string
+          created_at: string
+          custom_name: string
+          personality: Database["public"]["Enums"]["companion_personality"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          companion_definition_id: string
+          created_at?: string
+          custom_name: string
+          personality?: Database["public"]["Enums"]["companion_personality"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          companion_definition_id?: string
+          created_at?: string
+          custom_name?: string
+          personality?: Database["public"]["Enums"]["companion_personality"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_companions_companion_definition_id_fkey"
+            columns: ["companion_definition_id"]
+            isOneToOne: false
+            referencedRelation: "companion_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_life_areas: {
+        Row: {
+          created_at: string
+          custom_name: string | null
+          id: string
+          life_area_definition_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_name?: string | null
+          id?: string
+          life_area_definition_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_name?: string | null
+          id?: string
+          life_area_definition_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_life_areas_life_area_definition_id_fkey"
+            columns: ["life_area_definition_id"]
+            isOneToOne: false
+            referencedRelation: "life_area_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_life_roles: {
+        Row: {
+          created_at: string
+          life_role_definition_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          life_role_definition_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          life_role_definition_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_life_roles_life_role_definition_id_fkey"
+            columns: ["life_role_definition_id"]
+            isOneToOne: false
+            referencedRelation: "life_role_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_obstacles: {
+        Row: {
+          created_at: string
+          custom_label: string | null
+          obstacle_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_label?: string | null
+          obstacle_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_label?: string | null
+          obstacle_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_obstacles_obstacle_key_fkey"
+            columns: ["obstacle_key"]
+            isOneToOne: false
+            referencedRelation: "obstacle_definitions"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      user_schedule_preferences: {
+        Row: {
+          created_at: string
+          sleep_time: string
+          timezone: string
+          updated_at: string
+          user_id: string
+          wake_time: string
+        }
+        Insert: {
+          created_at?: string
+          sleep_time: string
+          timezone: string
+          updated_at?: string
+          user_id: string
+          wake_time: string
+        }
+        Update: {
+          created_at?: string
+          sleep_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          wake_time?: string
+        }
+        Relationships: []
       }
       waitlist_signups: {
         Row: {
@@ -520,6 +996,8 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_mobile_onboarding: { Args: never; Returns: Json }
+      ensure_mobile_profile: { Args: never; Returns: Json }
       is_waitlist_enabled: { Args: never; Returns: boolean }
     }
     Enums: {
@@ -540,8 +1018,42 @@ export type Database = {
         | "settings.read"
         | "settings.write"
       application_setting_key: "support_url" | "privacy_url" | "terms_url"
+      companion_personality: "gentle" | "balanced" | "coach"
       deployment_environment: "development" | "staging" | "production"
+      energy_baseline:
+        | "morning"
+        | "afternoon"
+        | "evening"
+        | "varies"
+        | "not_sure"
       feature_flag_key: "waitlist_enabled"
+      mobile_device_platform: "ios" | "android"
+      mobile_onboarding_status: "not_started" | "in_progress" | "completed"
+      mobile_onboarding_step:
+        | "preferred_name"
+        | "companion_selection"
+        | "companion_name"
+        | "companion_personality"
+        | "life_areas"
+        | "normal_day"
+        | "life_roles"
+        | "fixed_commitments"
+        | "improvement_focus"
+        | "obstacles"
+        | "energy_baseline"
+        | "notification_setup"
+      notification_permission_status:
+        | "undetermined"
+        | "granted"
+        | "denied"
+        | "unavailable"
+      pre_auth_intent:
+        | "get_organized"
+        | "build_routines"
+        | "focus_better"
+        | "reach_a_goal"
+        | "balance_my_life"
+        | "something_else"
       waitlist_platform_interest: "ios" | "android" | "both"
       waitlist_signup_source:
         | "landing_page"
@@ -701,8 +1213,46 @@ export const Constants = {
         "settings.write",
       ],
       application_setting_key: ["support_url", "privacy_url", "terms_url"],
+      companion_personality: ["gentle", "balanced", "coach"],
       deployment_environment: ["development", "staging", "production"],
+      energy_baseline: [
+        "morning",
+        "afternoon",
+        "evening",
+        "varies",
+        "not_sure",
+      ],
       feature_flag_key: ["waitlist_enabled"],
+      mobile_device_platform: ["ios", "android"],
+      mobile_onboarding_status: ["not_started", "in_progress", "completed"],
+      mobile_onboarding_step: [
+        "preferred_name",
+        "companion_selection",
+        "companion_name",
+        "companion_personality",
+        "life_areas",
+        "normal_day",
+        "life_roles",
+        "fixed_commitments",
+        "improvement_focus",
+        "obstacles",
+        "energy_baseline",
+        "notification_setup",
+      ],
+      notification_permission_status: [
+        "undetermined",
+        "granted",
+        "denied",
+        "unavailable",
+      ],
+      pre_auth_intent: [
+        "get_organized",
+        "build_routines",
+        "focus_better",
+        "reach_a_goal",
+        "balance_my_life",
+        "something_else",
+      ],
       waitlist_platform_interest: ["ios", "android", "both"],
       waitlist_signup_source: [
         "landing_page",

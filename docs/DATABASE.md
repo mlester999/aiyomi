@@ -17,11 +17,11 @@ Rules:
 - make sensitive records private by default
 - preserve auditability without retaining unnecessary personal content
 
-The waitlist schema is the accepted Phase 1A source of truth. Phase 2 adds only
-the admin authorization, audit, feature-flag, settings, and bounded waitlist
-operation structures required by the active admin scope. Future consumer
-domains below remain conceptual boundaries, not authorization to create those
-tables now.
+The waitlist schema is the accepted Phase 1A source of truth. Phase 2 adds the
+accepted admin authorization and operational structures. The active Phase 3
+scope adds private consumer identity, onboarding, personalization, notification,
+device, and verified conversion foundations. Planning and later domains remain
+conceptual until their roadmap phase is explicitly authorized.
 
 ## 2. Phase 1A table: `waitlist_signups`
 
@@ -126,18 +126,23 @@ Potential early-supporter rewards such as a Founder badge, cosmetic, Companion i
 
 ## 6. Waitlist conversion
 
-When future mobile authentication exists, conversion may occur only after a trusted provider verifies the account email.
+Phase 3 conversion may occur only after Supabase Auth verifies account email
+ownership through email confirmation or a trusted Google identity.
 
-Conceptual flow:
+Implemented flow:
 
 1. A person creates or signs into a Supabase Auth account.
 2. Email ownership is verified through email verification or a trusted Google identity.
-3. A trusted server process normalizes the verified email using the same policy as the waitlist.
+3. A trusted trigger or caller-scoped repair function reads the email from
+   `auth.users` and normalizes it using the waitlist policy.
 4. At most one matching waitlist record is associated with the Auth user.
 5. The process sets `converted_user_id` and `converted_at` idempotently.
 6. A repeat event returns the existing result without creating a second conversion.
 
-Never match an unverified user-supplied email. Account deletion, email changes, and restored accounts need explicit future policies before conversion is implemented.
+Never match an unverified or client-supplied email. Conversion preserves an
+unsubscribed lifecycle status while recording the real conversion fields.
+Account deletion remains deferred because the existing Auth foreign key uses
+delete cascade and requires an explicit retention and privacy decision.
 
 ## 7. Phase 2 admin operational model
 
@@ -234,14 +239,78 @@ setting has a strict value schema, environment boundary where relevant, an
 authorized mutation, and an audit event. Provider credentials and other secrets
 remain in deployment secret stores, never settings rows.
 
-## 8. Future domain boundaries
+## 8. Phase 3 consumer foundation
 
-These domains guide later consumer schema design and remain outside Phase 2
+The repository contains three ordered forward-only Phase 3 migrations:
+
+1. `202608140001_create_consumer_foundation.sql`
+2. `202608140002_create_notification_foundation.sql`
+3. `202608140003_create_mobile_auth_workflows.sql`
+
+Their presence does not prove they were applied. Hosted status must be reported
+against a confirmed Development or Staging project.
+
+### Private profile and personalization tables
+
+| Table | Purpose |
+| --- | --- |
+| `profiles` | caller-owned name, timezone, locale, and resumable onboarding state |
+| `companion_definitions` | server-controlled active Mori, Lumi, and Piko catalog |
+| `user_companions` | one caller-owned Companion selection, name, and personality |
+| `life_area_definitions` | server-controlled active Life Area catalog |
+| `user_life_areas` | caller-owned standard or custom Life Areas |
+| `life_role_definitions` | server-controlled bounded role catalog |
+| `user_life_roles` | caller-owned role selections |
+| `user_schedule_preferences` | wake, sleep, and IANA timezone preferences |
+| `fixed_commitments` | lightweight caller-owned weekly unavailable windows |
+| `onboarding_intentions` | private improvement focus, pre-auth category, and optional energy baseline |
+| `obstacle_definitions` | server-controlled bounded obstacle catalog |
+| `user_obstacles` | private caller-owned self-reported obstacles |
+| `notification_preferences` | private categories, quiet hours, and timezone |
+| `device_push_tokens` | private multi-installation permission and optional Expo token records |
+
+Catalog tables are readable only when active and cannot be changed by normal
+consumers. Every user-owned table resolves ownership to `auth.uid()`, uses
+explicit grants, and has forced RLS. A normal consumer has no grant to admin,
+audit, feature-flag, setting, export, or waitlist operational data.
+
+Schedule times are local wall-clock values paired with an IANA timezone.
+Overnight wake, sleep, commitment, and quiet-hour windows are valid. Fixed
+commitment days use canonical integers `0` through `6`, where Sunday is `0` and
+Saturday is `6`. They are deduplicated and sorted without implementing a
+recurrence engine. Named weekday constants are display mappings only.
+
+### Trusted workflow functions
+
+`ensure_mobile_profile()` derives the caller from `auth.uid()`, idempotently
+repairs the profile and notification defaults, and retries verified conversion.
+It never accepts an owner id or email.
+
+`complete_mobile_onboarding()` locks the caller's profile, checks required
+profile, Companion, Life Area, schedule, role, improvement, and notification
+timezone records, and writes the completed state with server time. Repeated
+calls return the existing completion without duplicating data.
+
+### Notification token constraints
+
+One row is unique per user and installation. One non-null Expo token is unique
+globally. A row may keep a null token when permission is denied, undetermined,
+unavailable, or the build cannot acquire one. `enabled = true` requires granted
+permission and a token. Push tokens are excluded from analytics and broad admin
+access.
+
+## 9. Future domain boundaries
+
+These domains guide later consumer schema design and remain outside Phase 3
 without explicit future scope.
 
 ### Identity and preferences
 
-Profiles, timezone, day preferences, Life Areas, notification settings, accessibility preferences, audio controls, privacy choices, and Companion configuration belong to the user. Auth identity and public profile identity should remain separate so social participation stays optional.
+Phase 3 profiles, timezone, schedule preferences, Life Areas, notification
+settings, and Companion configuration belong to the user. Future accessibility,
+audio, privacy, and public-profile fields must preserve that ownership. Auth
+identity and public profile identity remain separate so social participation
+stays optional.
 
 ### Planning
 
@@ -267,7 +336,7 @@ XP, spendable currency, Growth Points, achievements, quests, inventory, and comp
 
 Friend relationships, challenges, shared Focus rooms, public profile fields, and share artifacts must use explicit visibility. They must not inherit access from private planning, reflection, or Life Model tables.
 
-## 9. Server-authoritative competitive data
+## 10. Server-authoritative competitive data
 
 When competition is scoped, database design must resist fake tasks, one-second spam, timer farming, unattended timers, fake accounts, multiple accounts, device clock manipulation, fabricated completions, impossible timing, duplicate rewards, and bots.
 
@@ -285,7 +354,7 @@ Potential controls include:
 
 Top global users must be reviewable before significant rewards are distributed. Money cannot purchase Growth Points or rank.
 
-## 10. Retention, deletion, and privacy
+## 11. Retention, deletion, and privacy
 
 Before a future data class reaches production, document:
 
@@ -299,7 +368,7 @@ Before a future data class reaches production, document:
 
 Users should eventually be able to view and remove saved Companion memories, disable memory categories, reset memory, control visibility, delete their data, and delete their account. Deleting raw private data must trigger a defined strategy for dependent Life Model features and cached AI context.
 
-## 11. Migration and recovery procedure
+## 12. Migration and recovery procedure
 
 For every schema change:
 
@@ -319,14 +388,15 @@ Admin bootstrap and environment promotion require the separate owner checks in
 Hosted authorization tests run only after the selected Development or Staging
 project has been independently confirmed.
 
-## 12. Open decisions
+## 13. Open decisions
 
 - exact status vocabulary and suppression handling for the waitlist
-- normalized email storage implementation and compatibility with future Auth matching
 - retention period for non-converted and unsubscribed waitlist records
+- account deletion behavior for converted waitlist records and Auth-linked data
 - whether referral codes are issued at signup or during a later campaign
 - audit-log and export retention periods
 - exact Phase 2 setting allowlist
 - Production admin session and MFA policy
 - job mechanism for retrying email synchronization
+- production retention for device push tokens and stale installations
 - future regional residency and backup requirements

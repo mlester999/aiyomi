@@ -2,9 +2,9 @@
 
 ## 1. Phase 2 status and scope
 
-Phase 2 is the active implementation phase. Phase 0, Phase 1A, and Phase 1A.1
-are accepted. Phase 3 and later product work remain out of scope until the
-owner explicitly approves a new phase.
+Phase 2 and its admin UX are accepted foundations. Phase 3 is the active
+consumer-mobile scope. This document remains authoritative for the admin
+boundary, which consumer development must preserve.
 
 The admin application is an internal operational surface for the capabilities
 that exist today. Phase 2 covers:
@@ -18,9 +18,9 @@ that exist today. Phase 2 covers:
 - environment-aware operations against hosted Supabase
 
 There is no public admin registration. A Supabase Auth identity alone never
-grants admin access. Phase 2 does not authorize mobile authentication, consumer
-profiles, AI, planning, Focus, Day Score, rewards, social features, billing, or
-other later-phase product systems.
+grants admin access. Phase 3 consumer authentication and profiles do not expand
+admin permissions. AI, planning, Focus, Day Score, rewards, social features,
+billing, and unrelated admin capabilities remain outside this admin boundary.
 
 ## 2. Security model
 

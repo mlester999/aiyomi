@@ -86,10 +86,9 @@ Complete mobile functionality, full AI, final Day Score, full virtual world, min
 
 ### Status
 
-Repository implementation and credential-free validation are complete. Phase 0,
-Phase 1A, and Phase 1A.1 are accepted. Phase 2 remains pending owner-authorized
-hosted Development or Staging migration and smoke validation. Phase 3 must not
-begin without owner approval after that acceptance checkpoint.
+Phase 0, Phase 1A, Phase 1A.1, Phase 2, and the Phase 2 admin UX work are
+accepted foundations. Their operational and security boundaries remain in
+force while consumer development proceeds.
 
 ### Outcome
 
@@ -130,6 +129,12 @@ Full user support tooling, AI provider control, subscriptions, Companion content
 
 ## Phase 3: Mobile Foundation + Authentication + Onboarding
 
+### Status
+
+Phase 3 is the active owner-authorized implementation scope. Repository checks,
+hosted Development validation, configured native provider flows, device QA, and
+owner actions must be reported separately before acceptance.
+
 ### Outcome
 
 A real Expo mobile application with secure identity and a lightweight, accessible getting-to-know-you flow.
@@ -137,14 +142,20 @@ A real Expo mobile application with secure identity and a lightweight, accessibl
 ### Scope
 
 - Expo Router navigation and platform-specific mobile design foundation
+- polished launch and four-screen pre-auth introduction with optional local intent
 - Supabase Auth email and password, Google Sign-In, email verification, and password reset
 - secure session storage, deep links, error recovery, and account basics
-- 2 to 4 minute onboarding for first name, timezone, schedule preferences, Life Areas, priorities, desired improvement, distractions, and accountability mode
+- resumable onboarding for preferred name, Companion identity and personality,
+  timezone, schedule preferences, Life Areas, life roles, optional fixed
+  commitments, desired improvement, obstacles, and optional energy baseline
+- notification education, optional permission, private preferences, quiet
+  hours, multi-device push-token storage, and a Development-only local test
 - no pre-created tasks, routines, habits, or sessions
 - the question: "If this app could improve one thing about your life right now, what would it be?"
 - permission and privacy explanations
 - verified waitlist conversion matching to `converted_user_id` and `converted_at`, including trusted Google email matching
 - initial cached app shell and offline-state conventions
+- personalized welcome, empty Today, tab foundation, and editable Phase 3 settings
 
 ### Exit criteria
 
@@ -153,6 +164,9 @@ A real Expo mobile application with secure identity and a lightweight, accessibl
 - onboarding can be skipped where optional and completed accessibly
 - timezone and privacy defaults are correct
 - account and session security is validated
+- notification refusal never blocks onboarding and token rows remain user-private
+- first Today contains no fake tasks, progress, scores, or achievements
+- credential-free, hosted Development, and native results are distinguished honestly
 
 ### Non-goals
 
@@ -173,7 +187,8 @@ Users can model a realistic day with correct domain distinctions and preserve in
 - manual planning, rescheduling, partial outcomes, skips, cancellations, and corrections
 - natural-language capture foundation without autonomous changes
 - day contexts including Rest, Recovery, Sick, Vacation, and Light Day
-- notifications and timezone behavior
+- Daily Life Engine notification scheduling and timezone behavior using the
+  optional Phase 3 permission, preference, and device foundation
 - offline-aware cache, queued writes, stable identifiers, and conflict handling for scoped actions
 - optional calendar architecture preparation without full integration unless separately scoped
 
@@ -428,8 +443,8 @@ A phase is complete only when:
 
 ## 4. Current boundary
 
-The authorized work is **Phase 2: Admin Foundation**. Phase 0, Phase 1A, and
-Phase 1A.1 are accepted foundations. The public landing visual direction is
-frozen except for genuine bug, accessibility, security, or integration fixes.
-Mobile remains a foundation only. Phase 3 through Phase 11 are documentation
-and planning context until the owner explicitly scopes them.
+The authorized work is **Phase 3: Mobile Foundation + Authentication +
+Onboarding**. Phase 0 through Phase 2 and the Phase 2 admin UX are accepted
+foundations. The public landing and admin visual directions remain frozen except
+for genuine bug, accessibility, security, or integration fixes. Phase 4 through
+Phase 11 remain planning context and are not authorized implementation scope.
