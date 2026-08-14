@@ -1,21 +1,82 @@
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
-const environment =
-  process.env.EXPO_PUBLIC_AIYOMI_ENVIRONMENT?.trim() || "development";
-const isProduction = environment === "production";
+type AiyomiEnvironment = "development" | "staging" | "production";
+
+const DEFAULT_EAS_PROJECT_ID = "1d7195ba-d3cc-47ca-9f84-d877c77cd465";
+const DEVELOPMENT_SUPABASE_PROJECT_REF = "kznbmwffwcfhcjtaqmyi";
+
+const optionalPublicValue = (value: string | undefined) => {
+  const normalized = value?.trim();
+  return normalized || undefined;
+};
+
+const supportedEnvironments: readonly AiyomiEnvironment[] = [
+  "development",
+  "staging",
+  "production",
+];
+const configuredEnvironment =
+  optionalPublicValue(process.env.EXPO_PUBLIC_AIYOMI_ENVIRONMENT) ??
+  optionalPublicValue(process.env.AIYOMI_ENVIRONMENT) ??
+  "development";
+
+if (
+  !supportedEnvironments.includes(
+    configuredEnvironment as AiyomiEnvironment,
+  )
+) {
+  throw new Error(
+    `Unsupported Aiyomi environment: ${configuredEnvironment}. Use development, staging, or production.`,
+  );
+}
+
+const environment = configuredEnvironment as AiyomiEnvironment;
+const defaultIdentifiers: Record<
+  AiyomiEnvironment,
+  { ios: string; android: string }
+> = {
+  development: {
+    ios: "com.aiyomi.mobile.dev",
+    android: "com.aiyomi.mobile.dev",
+  },
+  staging: {
+    ios: "com.aiyomi.mobile.staging",
+    android: "com.aiyomi.mobile.staging",
+  },
+  production: {
+    ios: "com.aiyomi.mobile",
+    android: "com.aiyomi.mobile",
+  },
+};
 
 const iosBundleIdentifier =
   process.env.AIYOMI_IOS_BUNDLE_IDENTIFIER?.trim() ||
-  (isProduction ? "com.aiyomi.mobile" : "com.aiyomi.mobile.dev");
+  defaultIdentifiers[environment].ios;
 const androidPackage =
   process.env.AIYOMI_ANDROID_PACKAGE?.trim() ||
-  (isProduction ? "com.aiyomi.mobile" : "com.aiyomi.mobile.dev");
-const easProjectId = process.env.EXPO_PUBLIC_EAS_PROJECT_ID?.trim();
+  defaultIdentifiers[environment].android;
+const easProjectId =
+  optionalPublicValue(process.env.EXPO_PUBLIC_EAS_PROJECT_ID) ||
+  DEFAULT_EAS_PROJECT_ID;
+const supabaseProjectRef =
+  optionalPublicValue(process.env.EXPO_PUBLIC_SUPABASE_PROJECT_REF) ||
+  (environment === "development"
+    ? DEVELOPMENT_SUPABASE_PROJECT_REF
+    : undefined);
+const publicSiteUrl =
+  optionalPublicValue(process.env.EXPO_PUBLIC_SITE_URL) ||
+  "http://localhost:3000";
+const privacyUrl = optionalPublicValue(process.env.EXPO_PUBLIC_PRIVACY_URL);
+const termsUrl = optionalPublicValue(process.env.EXPO_PUBLIC_TERMS_URL);
+const supportUrl = optionalPublicValue(process.env.EXPO_PUBLIC_SUPPORT_URL);
+const appStoreUrl = optionalPublicValue(process.env.EXPO_PUBLIC_APP_STORE_URL);
+const playStoreUrl = optionalPublicValue(process.env.EXPO_PUBLIC_PLAY_STORE_URL);
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Aiyomi",
   slug: "aiyomi",
+  owner: "markyyesters-team",
   version: "0.1.0",
   orientation: "portrait",
   scheme: "aiyomi",
@@ -74,18 +135,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     ...config.extra,
-    ...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
+    eas: {
+      ...config.extra?.eas,
+      projectId: easProjectId,
+    },
     aiyomi: {
       environment,
-      supabaseProjectRef:
-        process.env.EXPO_PUBLIC_SUPABASE_PROJECT_REF?.trim() || null,
-      publicSiteUrl:
-        process.env.EXPO_PUBLIC_SITE_URL?.trim() || "http://localhost:3000",
-      privacyUrl: process.env.EXPO_PUBLIC_PRIVACY_URL?.trim() || null,
-      termsUrl: process.env.EXPO_PUBLIC_TERMS_URL?.trim() || null,
-      supportUrl: process.env.EXPO_PUBLIC_SUPPORT_URL?.trim() || null,
-      appStoreUrl: process.env.EXPO_PUBLIC_APP_STORE_URL?.trim() || null,
-      playStoreUrl: process.env.EXPO_PUBLIC_PLAY_STORE_URL?.trim() || null,
+      ...(supabaseProjectRef ? { supabaseProjectRef } : {}),
+      publicSiteUrl,
+      ...(privacyUrl ? { privacyUrl } : {}),
+      ...(termsUrl ? { termsUrl } : {}),
+      ...(supportUrl ? { supportUrl } : {}),
+      ...(appStoreUrl ? { appStoreUrl } : {}),
+      ...(playStoreUrl ? { playStoreUrl } : {}),
     },
   },
 });

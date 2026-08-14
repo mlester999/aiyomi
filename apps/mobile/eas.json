@@ -12,6 +12,13 @@
         "EXPO_PUBLIC_AIYOMI_ENVIRONMENT": "development"
       }
     },
+    "staging": {
+      "distribution": "internal",
+      "channel": "staging",
+      "env": {
+        "EXPO_PUBLIC_AIYOMI_ENVIRONMENT": "staging"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
