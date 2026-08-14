@@ -1023,6 +1023,8 @@ td small {
   border-radius: 0.9rem;
   background: var(--paper-strong);
   padding: 0.85rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .mobile-record-card-heading,
@@ -1641,6 +1643,8 @@ td small {
   .mobile-record-list {
     display: grid;
     gap: 0.7rem;
+    min-width: 0;
+    width: 100%;
   }
 
   .field-wide {
